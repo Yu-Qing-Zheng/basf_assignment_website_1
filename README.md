@@ -1,24 +1,25 @@
 # website_1_crawler
 
-A Scrapy-based crawler that extracts metadata, attachments, and geospatial visualizations from project pages on [uvp-verbund.de](https://www.uvp-verbund.de/).  
-Designed as part of the BASF assignment for structured document scraping.
+A Scrapy-based crawler that extracts metadata, attachments, html, and geospatial visualizations from project pages on [uvp-verbund.de](https://www.uvp-verbund.de/).  
+Designed as the first part of the BASF assignment for crawling.
 
 ## Features
 
 - Crawls project reports from paginated search results
 - Extracts:
-  - Metadata (title, description, dates, categories)
-  - All PDF / ZIP attachments (with optional unzip)
-  - Geolocation map (screenshot)
+  - Metadata (title, description, dates, categories ...)
+  - All PDF attachments (unzipped from ZIP attachments)
+  - Raumbezug map (screenshot of project geolocation)
   - Full HTML source per project
 - Organizes data in a clear directory structure:
   ```
-  project_<index>/
-  ├── metadata.json
-  ├── Source.html
-  ├── Raumbezug.jpg
-  └── attachment/
-      └── *.pdf / *.zip / ...
+  page_<index>/
+  ├── project_<index>/
+      ├── metadata.json
+      ├── Source.html
+      ├── Raumbezug.jpg
+      └── attachment/
+          └── *.pdf / ...
   ```
 
 ## Setup
