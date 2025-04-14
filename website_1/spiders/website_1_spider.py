@@ -137,12 +137,13 @@ class Website1Spider(scrapy.Spider):
         if response.xpath('//div[@class="columns form"]/h4[@class="no-margin"]/text()')[1].get():
             decision_date_title = response.xpath('//div[@class="columns form"]/h4[@class="no-margin"]/text()')[1].get().strip()
         decision_date = cleaned_location[-1]
-        attachment_title = response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get()
-        if attachment_title:
-            attachment_title = attachment_title.strip()
-        eia_report_pdf_title = response.xpath('//a[@class="link download"]/@title').getall()
-        eia_report_pdf_url = response.xpath('//a[@class="link download"]/@href').getall()
+        attachment_title = "Ergebnis der UVP-Vorprüfung"
+        if response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get():
+            attachment_title = response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get()
+            if attachment_title:
+                attachment_title = attachment_title.strip()
         zip_url = response.xpath('//div[@class="zip-download"]/a/@href').get()
+
         metadata = {
             "Detail_URL": response.url,
             "Eia_report_index" : eia_report_index,
@@ -161,12 +162,15 @@ class Website1Spider(scrapy.Spider):
                 },
             },
             decision_date_title: decision_date,
-            attachment_title: {
-                "Title": eia_report_pdf_title,
-                "URL": eia_report_pdf_url,
-                "ZIP_URL": zip_url,
-            },
+            # attachment_title: {
+            #     "Title": eia_report_pdf_title,
+            #     "URL": eia_report_pdf_url,
+            #     "ZIP_URL": zip_url,
+            # },
         }
+        attachment_metadata = Website1Spider.attachment_metadata_negative_vorpruefung(response)
+        metadata[attachment_title] = attachment_metadata
+
         yield metadata
 
         # scrapy.Request() to download zipfile
@@ -180,6 +184,26 @@ class Website1Spider(scrapy.Spider):
                 },
             
             )
+    
+    @staticmethod
+    def attachment_metadata_negative_vorpruefung(response):
+        attachment_metadata = {}
+        attachment_title = response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get()
+        if attachment_title:
+            attachment_title = attachment_title.strip()
+        eia_report_pdf_title = response.xpath('//a[@class="link download"]/@title').getall()
+        eia_report_pdf_url = response.xpath('//a[@class="link download"]/@href').getall()
+        zip_url = response.xpath('//div[@class="zip-download"]/a/@href').get()
+        attachment_metadata["ZIP_URL"] = zip_url
+        if eia_report_pdf_url:
+            for id, pdf_url in enumerate(eia_report_pdf_url, start=0):
+                attachment_metadata[str(id+1)] = {
+                    'Document-title': eia_report_pdf_title[id],
+                    'Document-URL': eia_report_pdf_url[id],
+                }
+
+        return attachment_metadata
+
 
     def parse_zulassungsverfahren(self, response, eia_report_index, source_page, report_type):
 
