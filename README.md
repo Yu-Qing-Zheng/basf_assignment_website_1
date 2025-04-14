@@ -13,13 +13,14 @@ Designed as the first part of the BASF assignment for crawling.
   - Full HTML source per project
 - Organizes data in a clear directory structure:
   ```
-  page_<index>/
-  ├── project_<index>/
-      ├── metadata.json
-      ├── Source.html
-      ├── Raumbezug.jpg
-      └── attachment/
-          └── *.pdf / ...
+  data/
+  ├──page_<index>/
+     ├── project_<index>/
+         ├── metadata.json
+         ├── Source.html
+         ├── Raumbezug.jpg
+         └── attachment/
+             └── *.pdf / ...
   ```
 
 ## Setup
