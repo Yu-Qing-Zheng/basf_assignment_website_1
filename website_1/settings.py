@@ -93,7 +93,7 @@ ITEM_PIPELINES = {
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-PAGE_LIMIT = 1
+PAGE_LIMIT = 5
 FEED_OVERWRITE = True
 
 LOG_ENABLED = True
