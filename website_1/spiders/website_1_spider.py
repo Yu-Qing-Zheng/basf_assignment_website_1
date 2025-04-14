@@ -254,18 +254,18 @@ class Website1Spider(scrapy.Spider):
         metadata[attachment_title] = attachment_metadata[attachment_title]
         yield metadata
 
-        # # scrapy.Request() to download zipfile
-        # zip_url =  metadata[report_type]["ZIP-URL"]
-        # if zip_url:
-        #     yield scrapy.Request(
-        #         url=zip_url,
-        #         callback=self.save_zip,
-        #         meta={
-        #             "eia_report_index": eia_report_index,
-        #             "source_page": source_page,
-        #         },
+        # scrapy.Request() to download zipfile
+        zip_url =  metadata[report_type]["ZIP-URL"]
+        if zip_url:
+            yield scrapy.Request(
+                url=zip_url,
+                callback=self.save_zip,
+                meta={
+                    "eia_report_index": eia_report_index,
+                    "source_page": source_page,
+                },
             
-        #     )
+            )
 
     def save_zip(self, response):
 
