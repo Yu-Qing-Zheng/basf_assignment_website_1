@@ -65,7 +65,10 @@ class SaveHtmlPipeline:
         options = Options()
         for arg in self.driver_args:
             options.add_argument(arg)
-        self.driver = webdriver.Chrome(options=options)
+        self.driver = webdriver.Chrome(
+            options=options,
+            executable_path=self.executable_path,
+        )
     
     def close_spider(self, spider):
         self.driver.quit()
