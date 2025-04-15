@@ -56,3 +56,4 @@ scrapy crawl website_1 -o output.jsonl
 - This crawler uses Selenium to capture geospatial map screenshots.
 - ZIP files are extracted automatically unless empty or malformed.
 - Currently supports "Zulassungsverfahren" and "Negative Vorprüfung" report types.
+- Make sure to update the `SELENIUM_DRIVER_EXECUTABLE_PATH` in `settings.py` to match the path of your own ChromeDriver installation (default is `/usr/local/bin/chromedriver`).
