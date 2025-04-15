@@ -15,6 +15,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
 
 
 class SaveJsonlPipeline:
@@ -65,9 +66,11 @@ class SaveHtmlPipeline:
         options = Options()
         for arg in self.driver_args:
             options.add_argument(arg)
+        
+        service = Service(executable_path=self.executable_path)
         self.driver = webdriver.Chrome(
             options=options,
-            executable_path=self.executable_path,
+            service=service,
         )
     
     def close_spider(self, spider):
