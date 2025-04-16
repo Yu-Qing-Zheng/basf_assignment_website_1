@@ -279,7 +279,8 @@ class Website1Spider(scrapy.Spider):
         yield metadata
 
         # scrapy.Request() to download zipfile
-        zip_url =  metadata[report_type]["ZIP-URL"]
+        zip_url = metadata[attachment_title]["ZIP-URL"]
+        print(f"***ZIP_URL***: {zip_url}")
         if zip_url:
             yield scrapy.Request(
                 url=zip_url,
