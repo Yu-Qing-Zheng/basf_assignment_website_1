@@ -13,7 +13,10 @@ class Website1Spider(scrapy.Spider):
     custom_settings = {
         # "DOWNLOAD_DELAY": 2,
         # "CONCURRENT_REQUESTS": 1,
-        "RETRY_TIMES": 5,
+        "RETRY_TIMES": 2,
+        'DOWNLOAD_TIMEOUT': 15,
+        'RETRY_ENABLED': True,
+        
         "DEFAULT_REQUEST_HEADERS": {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
