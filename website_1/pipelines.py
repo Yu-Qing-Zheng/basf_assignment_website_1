@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
-
+import shutil
 
 class SaveJsonlPipeline:
 
@@ -25,6 +25,12 @@ class SaveJsonlPipeline:
 
     # def close_spider(self, spider):
     #     print(f"Crawling finished.")
+
+    def open_spider(self, spider):
+
+        main_dir = Path('./data')
+        if main_dir.exists() and main_dir.is_dir():
+            shutil.rmtree(main_dir)
 
     def process_item(self, item, spider):
 

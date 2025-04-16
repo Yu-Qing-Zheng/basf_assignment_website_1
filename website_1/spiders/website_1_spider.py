@@ -1,8 +1,10 @@
 from zipfile import ZipFile
 from pathlib import Path
 from io import BytesIO
+import shutil
 import scrapy
 import re
+import os
 
 
 class Website1Spider(scrapy.Spider):
@@ -24,12 +26,15 @@ class Website1Spider(scrapy.Spider):
         "https://www.uvp-verbund.de/freitextsuche?rstart=0&currentSelectorPage=1",
     ]
 
+    # import settings of page range param
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
         spider = super().from_crawler(crawler, *args, **kwargs)
         spider.page_limit = crawler.settings.getint("PAGE_LIMIT", default=5)
         return spider
 
+
+    # get pagination URL and eia report URL
     def parse(self, response):
         
         # get pagination links
@@ -64,10 +69,10 @@ class Website1Spider(scrapy.Spider):
             meta["source_page"] = current_page_number
             yield response.follow(link, callback=self.parse_metadata, meta=meta)     
         # yield from response.follow_all(cleaned_eia_links, self.parse_metadata)   
-                                              
-    def parse_metadata(self, response):
 
-        # get the metadata of the page:
+
+    # extract the metadata of the page                                     
+    def parse_metadata(self, response):
 
         eia_report_index = response.meta["eia_report_index"]
         source_page = response.meta["source_page"]
@@ -84,9 +89,11 @@ class Website1Spider(scrapy.Spider):
         elif report_type == "Zulassungsverfahren":
             yield from self.parse_zulassungsverfahren(response, eia_report_index, source_page, report_type)
 
+
+    # info extraction for "Negative Vorprüfungen"
     def parse_negative_vorpruefung(self, response, eia_report_index, source_page, report_type):
 
-        # "Negative Vorprüfungen"
+        
         # if report_type == "Negative Vorprüfungen":
         title = response.xpath('//div[@class="columns"]/h1/text()').get()
         if title:
@@ -185,29 +192,10 @@ class Website1Spider(scrapy.Spider):
             
             )
     
-    @staticmethod
-    def attachment_metadata_negative_vorpruefung(response):
-        attachment_metadata = {}
-        attachment_title = response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get()
-        if attachment_title:
-            attachment_title = attachment_title.strip()
-        eia_report_pdf_title = response.xpath('//a[@class="link download"]/@title').getall()
-        eia_report_pdf_url = response.xpath('//a[@class="link download"]/@href').getall()
-        zip_url = response.xpath('//div[@class="zip-download"]/a/@href').get()
-        attachment_metadata["ZIP_URL"] = zip_url
-        if eia_report_pdf_url:
-            for id, pdf_url in enumerate(eia_report_pdf_url, start=0):
-                attachment_metadata[str(id+1)] = {
-                    'Document-title': eia_report_pdf_title[id],
-                    'Document-URL': eia_report_pdf_url[id],
-                }
 
-        return attachment_metadata
-
-
+    # info extraction for "Zulassungsverfahren"
     def parse_zulassungsverfahren(self, response, eia_report_index, source_page, report_type):
 
-        # "Zulassungsverfahren"
         # if report_type == "Zulassungsverfahren":
         title = response.xpath('//div[@class="columns"]/h1/text()').get()
         if title:
@@ -292,6 +280,30 @@ class Website1Spider(scrapy.Spider):
             
             )
 
+
+    # recursively unzip attachments
+    def recursive_unzip(self, root_dir):
+
+        for current_root, _, files in os.walk(root_dir):
+            for f in files:
+                if f.lower().endswith('.zip'):
+                    zip_path = Path(current_root) / f
+                    extract_dir = zip_path.with_suffix('')
+
+                    try:
+
+                        with ZipFile(zip_path, 'r') as z:
+                            z.extractall(path=extract_dir)
+                        zip_path.unlink()
+                        self.logger.info(f"Extracted ZIP to {extract_dir}")
+
+                        self.recursive_unzip(extract_dir)
+
+                    except Exception as e:
+                        self.logger.error(f"Failed to UNZIP nested zip {zip_path}: {e}")
+
+
+    # unzip attachments
     def save_zip(self, response):
 
         eia_report_index = response.meta["eia_report_index"]
@@ -301,12 +313,39 @@ class Website1Spider(scrapy.Spider):
         dir_path.mkdir(parents=True, exist_ok=True)
 
         try:
+
             with ZipFile(BytesIO(response.body)) as z:
                 z.extractall(path=dir_path / "attachment")
             self.logger.info(f"Extracted ZIP to {dir_path / 'attachment'}")
+
+            self.recursive_unzip(dir_path / "attachment")
+
         except Exception as e:
             self.logger.error(f"Failed to unzip: {e}")
 
+
+    # get attachment metadata for "negative_vorpruefung"
+    @staticmethod
+    def attachment_metadata_negative_vorpruefung(response):
+        attachment_metadata = {}
+        attachment_title = response.xpath('//div[@class="columns form"]/h4[@class="title-font"]/text()').get()
+        if attachment_title:
+            attachment_title = attachment_title.strip()
+        eia_report_pdf_title = response.xpath('//a[@class="link download"]/@title').getall()
+        eia_report_pdf_url = response.xpath('//a[@class="link download"]/@href').getall()
+        zip_url = response.xpath('//div[@class="zip-download"]/a/@href').get()
+        attachment_metadata["ZIP_URL"] = zip_url
+        if eia_report_pdf_url:
+            for id, pdf_url in enumerate(eia_report_pdf_url, start=0):
+                attachment_metadata[str(id+1)] = {
+                    'Document-title': eia_report_pdf_title[id],
+                    'Document-URL': eia_report_pdf_url[id],
+                }
+
+        return attachment_metadata
+
+
+    # get attachment metadata for "zulassungsverfahren"
     @staticmethod
     def attachment_metadata_zulassungsverfahren(response):
         timeline_text = response.xpath('//div[@class="timeline-text"]')
