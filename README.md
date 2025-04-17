@@ -47,13 +47,13 @@ scrapy crawl website_1 -o output.jsonl
 
 ## Project Structure
 
-- `spiders/website_1_spider.py` — main crawling logic
+- `spiders/website_1_spider.py` — main crawling logic and attachment downloading
 - `pipelines.py` — handles metadata saving, html and screenshot generation
 - `settings.py` — Scrapy configuration settings
 
 ## Notes
 
-- This crawler uses Selenium to capture geospatial map screenshots.
+- This crawler uses Selenium to capture geospatial map screenshots and full html content.
 - ZIP files are extracted automatically unless empty or malformed.
 - Currently supports "Zulassungsverfahren" and "Negative Vorprüfung" report types.
 - Make sure to update the `SELENIUM_DRIVER_EXECUTABLE_PATH` in `settings.py` to match the path of your own ChromeDriver installation (default is `/usr/local/bin/chromedriver`).
