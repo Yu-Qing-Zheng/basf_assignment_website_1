@@ -13,8 +13,8 @@ class Website1Spider(scrapy.Spider):
     custom_settings = {
         # "DOWNLOAD_DELAY": 2,
         # "CONCURRENT_REQUESTS": 1,
-        "RETRY_TIMES": 2,
-        'DOWNLOAD_TIMEOUT': 15,
+        "RETRY_TIMES": 5,
+        'DOWNLOAD_TIMEOUT': 120,
         'RETRY_ENABLED': True,
         
         "DEFAULT_REQUEST_HEADERS": {
@@ -52,7 +52,7 @@ class Website1Spider(scrapy.Spider):
             else:
                 if button_name and not button_href and button_name.isdigit() and 1 < int(button_name)<=self.page_limit:
                     current_page_number = int(button_name)
-        print("Pagination links:", pagination_links)
+        # print("Pagination links:", pagination_links)
 
         yield from response.follow_all(pagination_links, self.parse)
 
@@ -79,6 +79,8 @@ class Website1Spider(scrapy.Spider):
 
         eia_report_index = response.meta["eia_report_index"]
         source_page = response.meta["source_page"]
+        print(f"page_id: {source_page}")
+        print(f"index: {eia_report_index}")
         report_type = response.xpath('//div[@class="helper text"]/span/text()').get()
         if report_type:
             report_type = report_type.strip()
@@ -89,7 +91,8 @@ class Website1Spider(scrapy.Spider):
         if report_type == "Negative Vorprüfungen":
             yield from self.parse_negative_vorpruefung(response, eia_report_index, source_page, report_type)
 
-        elif report_type == "Zulassungsverfahren":
+        else:
+        # elif report_type == "Zulassungsverfahren" or "Ausländische Vorhaben":
             yield from self.parse_zulassungsverfahren(response, eia_report_index, source_page, report_type)
 
 
@@ -271,7 +274,7 @@ class Website1Spider(scrapy.Spider):
 
         # scrapy.Request() to download zipfile
         zip_url = metadata[attachment_title]["ZIP-URL"]
-        print(f"***ZIP_URL***: {zip_url}")
+        # print(f"***ZIP_URL***: {zip_url}")
         if zip_url:
             yield scrapy.Request(
                 url=zip_url,
@@ -384,20 +387,20 @@ class Website1Spider(scrapy.Spider):
 
                     if dot_title:
                         dot_title = dot_title.strip()
-                    print(f"dot_title: {dot_title}")
+                    # print(f"dot_title: {dot_title}")
 
                     # no-margin
                     decision_date_title = dot.xpath('following-sibling::h4[@class="no-margin"][1]/text()').get()
                     if decision_date_title:
                         decision_date_title = decision_date_title.strip()
-                    print(f"decision_date_title: {decision_date_title}")
+                    # print(f"decision_date_title: {decision_date_title}")
 
                     decision_date = dot.xpath('following-sibling::p[1]/text()').get()
                     if decision_date:
                         decision_date = decision_date.strip()
                     if "-" in decision_date:
                         decision_date = f"{decision_date.split('-')[0].strip()} - {decision_date.split('-')[1].strip()}"
-                    print(f"decision_date: {decision_date}")
+                    # print(f"decision_date: {decision_date}")
 
                     # title-font
                     file_group_title = [node for node in local_scope if node.root.tag == "h4" and "title-font" in node.attrib.get("class", "")]
@@ -422,7 +425,7 @@ class Website1Spider(scrapy.Spider):
                             file_group_title_text = group.xpath('text()').get()
                             if file_group_title_text:
                                 file_group_title_text = file_group_title_text.strip()
-                            print(f"file_group_title_text: {file_group_title_text}")
+                            # print(f"file_group_title_text: {file_group_title_text}")
                             
                             document_lists = [node for node in title_scope if node.root.tag == "div" and "document-list" in node.attrib.get("class", "")]
                             docs_metadata = {}
@@ -440,8 +443,8 @@ class Website1Spider(scrapy.Spider):
                                             doc_title = doc.xpath('a[@class="link download"]/@title').get()
                                             if doc_title:
                                                 doc_title = doc_title.strip()
-                                            print(f"doc_title: {doc_title}")
-                                            print(f"doc_url: {doc_url}")
+                                            # print(f"doc_title: {doc_title}")
+                                            # print(f"doc_url: {doc_url}")
                                             doc_metadata = {
                                                 'Document-title': doc_title,
                                                 'Document-URL': doc_url,
